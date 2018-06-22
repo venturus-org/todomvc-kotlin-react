@@ -1,4 +1,4 @@
-package HeaderInput
+package headerInput
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
