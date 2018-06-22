@@ -1,9 +1,13 @@
 package app
 
-import HeaderInput.headerInput
+import headerInput.headerInput
+import kotlinx.html.InputType
+import kotlinx.html.id
+import kotlinx.html.title
 import react.*
 import react.dom.*
 import model.Todo
+import utils.translate
 
 data class ApplicationOptions(
         val language: String
@@ -28,7 +32,16 @@ class App : RComponent<App.Props, App.State>() {
     override fun RBuilder.render() {
         section(classes = "todoapp") {
             headerInput(::updateTodo, state.todo)
+
+            section(classes = "main") {
+                input(classes = "toggle-all", type = InputType.checkBox){ this.attrs.id = "toggle-all"}
+                label {
+                    this.attrs["htmlFor"] = "toggle-all"
+                    this.attrs.title = "Mark all as complete".translate()
+                }
+            }
         }
+
     }
 
     private fun updateTodo(newTodo: Todo) {
