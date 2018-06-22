@@ -2,6 +2,8 @@ package headerInput
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onKeyDownFunction
+import kotlinx.html.onKeyDown
 import model.Todo
 import react.RBuilder
 import react.RComponent
@@ -13,24 +15,23 @@ import utils.value
 
 class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
 
-    override fun componentWillMount() {
-        val todo = props.todo
-    }
-
     override fun RBuilder.render() {
         header(classes = "header") {
             h1 {
                 +"todos".translate()
             }
-            input(classes = "new-todo") {
+            input(classes = "new-todo", type = InputType.text) {
                 this.attrs {
                     autoFocus = true
                     placeholder = "What needs to be done?".translate()
                     value = props.todo.description
-                    type = InputType.text
                     onChangeFunction = { event ->
-                        val value = event.value
-                        props.update(props.todo.copy(description = value))
+                        props.update(props.todo.copy(description = event.value))
+                    }
+                    onKeyDownFunction = { keyEvent ->
+                        if(keyEvent.asDynamic().key == "Enter") {
+                            props.create(props.todo)
+                        }
                     }
                 }
             }
@@ -38,10 +39,12 @@ class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
     }
 
     class Props(var todo: Todo,
-                var update: (Todo) -> Unit) : RProps
+                var update: (Todo) -> Unit,
+                var create: (Todo) -> Unit) : RProps
 }
 
-fun RBuilder.headerInput(update: (Todo) -> Unit, todo: Todo) = child(HeaderInput::class) {
+fun RBuilder.headerInput(create: (Todo) -> Unit, update: (Todo) -> Unit, todo: Todo) = child(HeaderInput::class) {
     attrs.todo = todo
     attrs.update = update
+    attrs.create = create
 }

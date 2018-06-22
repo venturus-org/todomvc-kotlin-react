@@ -7,6 +7,7 @@ import kotlinx.html.title
 import react.*
 import react.dom.*
 import model.Todo
+import todoList.todoList
 import utils.translate
 
 data class ApplicationOptions(
@@ -31,7 +32,7 @@ class App : RComponent<App.Props, App.State>() {
 
     override fun RBuilder.render() {
         section(classes = "todoapp") {
-            headerInput(::updateTodo, state.todo)
+            headerInput(::createTodo, ::updateTodo, state.todo)
 
             section(classes = "main") {
                 input(classes = "toggle-all", type = InputType.checkBox){ this.attrs.id = "toggle-all"}
@@ -39,9 +40,17 @@ class App : RComponent<App.Props, App.State>() {
                     this.attrs["htmlFor"] = "toggle-all"
                     this.attrs.title = "Mark all as complete".translate()
                 }
+                todoList(::updateTodo, listOf(Todo("Bootcamp")))
             }
         }
 
+    }
+
+    private fun createTodo(newTodo: Todo) {
+        setState {
+            todo = Todo()
+            todos = todos.plus(todo)
+        }
     }
 
     private fun updateTodo(newTodo: Todo) {
@@ -50,7 +59,7 @@ class App : RComponent<App.Props, App.State>() {
         }
     }
 
-    class State(var todo: Todo) : RState
+    class State(var todo: Todo, var todos: Collection<Todo>) : RState
     class Props(var options: ApplicationOptions) : RProps
 
 }
