@@ -49,16 +49,20 @@ class App : RComponent<App.Props, App.State>() {
                     todoList(::updateTodo, state.todos)
                 }
                 todoBar(state.todos.size, ::clearCompleted)
-                
+
             }
         }
         info()
     }
 
     private fun createTodo(newTodo: Todo) {
-        setState {
-            todo = Todo()
-            todos = todos.plus(newTodo)
+        if (newTodo.description.trim().isNotEmpty()) {
+            val trimmedTodo = newTodo.copy(newTodo.description.trim())
+            
+            setState {
+                todo = Todo()
+                todos = todos.plus(trimmedTodo)
+            }
         }
     }
 
