@@ -65,8 +65,7 @@ class App : RComponent<App.Props, App.State>() {
                     }
                     todoList(::updateTodos, state.todos)
                 }
-                todoBar(state.todos.size, ::clearCompleted)
-
+                todoBar(pendingTodos().size, ::clearCompleted)
             }
         }
         info()
@@ -96,7 +95,9 @@ class App : RComponent<App.Props, App.State>() {
     }
 
     private fun clearCompleted() {
-
+        setState {
+            todos = pendingTodos()
+        }
     }
 
     private fun isAllCompleted(): Boolean {
@@ -115,6 +116,10 @@ class App : RComponent<App.Props, App.State>() {
         setState {
             todos = todos.map { todo -> todo.copy(status = newStatus)  }
         }
+    }
+
+    private fun pendingTodos() : Collection<Todo> {
+        return state.todos.filter { todo -> todo.status != TodoStatus.Completed }
     }
 
     class State(var todo: Todo, var todos: Collection<Todo>) : RState
