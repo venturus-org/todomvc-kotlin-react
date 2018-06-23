@@ -2,6 +2,7 @@ package components
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
 import model.Todo
 import model.TodoStatus
 import react.RBuilder
@@ -31,7 +32,11 @@ class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
                             }
                         }
                         label { + todo.description }
-                        button(classes = "destroy") {  }
+                        button(classes = "destroy") {
+                            attrs {
+                                onClickFunction = { removeTodo(todo) }
+                            }
+                        }
                     }
                     input(classes = "edit", type = InputType.text) {
                         this.attrs {
@@ -46,12 +51,18 @@ class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
         }
     }
 
+    private fun removeTodo(todo: Todo) {
+        val updatedTodos = props.todos.minus(todo)
+
+        props.updateList(updatedTodos)
+    }
+
     private fun updateTodos(todo: Todo, updatedTodo: Todo) {
         //TODO: Review to check correctness.
         val todoIndex = props.todos.indexOf(todo)
         val updatedTodos : List<Todo> = props.todos.toMutableList().apply {
             this[todoIndex] = updatedTodo
-        }
+        }.filterNotNull()
 
         props.updateList(updatedTodos)
     }
