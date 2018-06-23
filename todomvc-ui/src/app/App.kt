@@ -26,7 +26,7 @@ class App : RComponent<App.Props, App.State>() {
     override fun componentWillMount() {
         setState {
             todo = Todo()
-            todos = listOf(Todo("Bootcamp"))
+            todos = listOf()
         }
 
         AppOptions.apply {
@@ -38,15 +38,19 @@ class App : RComponent<App.Props, App.State>() {
         section("todoapp") {
             headerInput(::createTodo, ::updateTodo, state.todo)
 
-            section("main") {
-                input(InputType.checkBox, classes = "toggle-all"){ this.attrs.id = "toggle-all"}
-                label {
-                    this.attrs["htmlFor"] = "toggle-all"
-                    this.attrs.title = "Mark all as complete".translate()
+            if(state.todos.isNotEmpty()) {
+
+                section("main") {
+                    input(InputType.checkBox, classes = "toggle-all") { this.attrs.id = "toggle-all" }
+                    label {
+                        this.attrs["htmlFor"] = "toggle-all"
+                        this.attrs.title = "Mark all as complete".translate()
+                    }
+                    todoList(::updateTodo, state.todos)
                 }
-                todoList(::updateTodo, state.todos)
+                todoBar(state.todos.size, ::clearCompleted)
+                
             }
-            todoBar(state.todos.size, ::clearCompleted )
         }
         info()
     }
