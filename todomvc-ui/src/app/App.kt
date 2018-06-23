@@ -43,6 +43,19 @@ class App : RComponent<App.Props, App.State>() {
                 todoList(::updateTodo, listOf(Todo("Bootcamp")))
             }
         }
+        footer("info") {
+            p { + "Double-click to edit a todo".translate() }
+            p {
+                + "Created by".translate()
+                + " "
+                a("https://github.com/thalescesarp") { + "Thales Cesar Pires" }
+            }
+            p {
+                + "Part of"
+                + " "
+                a("http://todomvc.com") { + "TodoMVC" }
+            }
+        }
 
     }
 
