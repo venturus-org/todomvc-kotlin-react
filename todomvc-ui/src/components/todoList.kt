@@ -1,4 +1,4 @@
-package todoList
+package components
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction

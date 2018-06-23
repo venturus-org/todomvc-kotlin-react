@@ -1,5 +1,7 @@
 package app
 
+import components.info
+import components.todoBar
 import headerInput.headerInput
 import kotlinx.html.InputType
 import kotlinx.html.id
@@ -7,7 +9,8 @@ import kotlinx.html.title
 import react.*
 import react.dom.*
 import model.Todo
-import todoList.todoList
+import components.todoList
+import utils.pluralize
 import utils.translate
 
 data class ApplicationOptions(
@@ -19,10 +22,11 @@ object AppOptions {
 }
 
 class App : RComponent<App.Props, App.State>() {
-    override fun componentWillMount() {
 
+    override fun componentWillMount() {
         setState {
             todo = Todo()
+            todos = listOf(Todo("Bootcamp"))
         }
 
         AppOptions.apply {
@@ -31,38 +35,26 @@ class App : RComponent<App.Props, App.State>() {
     }
 
     override fun RBuilder.render() {
-        section(classes = "todoapp") {
+        section("todoapp") {
             headerInput(::createTodo, ::updateTodo, state.todo)
 
-            section(classes = "main") {
-                input(classes = "toggle-all", type = InputType.checkBox){ this.attrs.id = "toggle-all"}
+            section("main") {
+                input(InputType.checkBox, classes = "toggle-all"){ this.attrs.id = "toggle-all"}
                 label {
                     this.attrs["htmlFor"] = "toggle-all"
                     this.attrs.title = "Mark all as complete".translate()
                 }
-                todoList(::updateTodo, listOf(Todo("Bootcamp")))
+                todoList(::updateTodo, state.todos)
             }
+            todoBar(state.todos.size, ::clearCompleted )
         }
-        footer("info") {
-            p { + "Double-click to edit a todo".translate() }
-            p {
-                + "Created by".translate()
-                + " "
-                a("https://github.com/thalescesarp") { + "Thales Cesar Pires" }
-            }
-            p {
-                + "Part of"
-                + " "
-                a("http://todomvc.com") { + "TodoMVC" }
-            }
-        }
-
+        info()
     }
 
     private fun createTodo(newTodo: Todo) {
         setState {
             todo = Todo()
-            todos = todos.plus(todo)
+            todos = todos.plus(newTodo)
         }
     }
 
@@ -70,6 +62,10 @@ class App : RComponent<App.Props, App.State>() {
         setState {
             todo = newTodo
         }
+    }
+
+    private fun clearCompleted() {
+
     }
 
     class State(var todo: Todo, var todos: Collection<Todo>) : RState

@@ -4,5 +4,10 @@
   "Mark all as complete": "Mark all as complete",
   "Double-click to edit a todo": "Double-click to edit a todo",
   "Created by": "Created by",
-  "Part of": "Part of"
+  "Part of": "Part of",
+  "item left": "item left",
+
+  "PLURALS": {
+    "item left": "items left"
+  }
 }
