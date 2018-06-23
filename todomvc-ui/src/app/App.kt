@@ -10,6 +10,8 @@ import react.*
 import react.dom.*
 import model.Todo
 import components.todoList
+import kotlinx.html.js.onChangeFunction
+import model.TodoStatus
 import utils.translate
 
 data class ApplicationOptions(
@@ -38,9 +40,25 @@ class App : RComponent<App.Props, App.State>() {
             headerInput(::createTodo, ::updateTodo, state.todo)
 
             if(state.todos.isNotEmpty()) {
+                val allChecked = isAllCompleted()
+                val someButNotAllChecked = !allChecked && isAnyCompleted()
 
                 section("main") {
-                    input(InputType.checkBox, classes = "toggle-all") { this.attrs.id = "toggle-all" }
+                    input(InputType.checkBox, classes = "toggle-all") {
+                        this.attrs {
+                            id = "toggle-all"
+                            checked = allChecked
+                            //TODO: Review if there is 'indetermitate' support
+                            //https://github.com/facebook/react/issues/1798
+                            ref { it?.indeterminate = someButNotAllChecked }
+                            onChangeFunction = {event ->
+                                val isChecked = event.currentTarget.asDynamic().checked as Boolean
+                                val status = TodoStatus.fromBoolean(isChecked)
+
+                                setAllStatus(status)
+                            }
+                        }
+                    }
                     label {
                         this.attrs["htmlFor"] = "toggle-all"
                         this.attrs.title = "Mark all as complete".translate()
@@ -79,6 +97,24 @@ class App : RComponent<App.Props, App.State>() {
 
     private fun clearCompleted() {
 
+    }
+
+    private fun isAllCompleted(): Boolean {
+        return state.todos.fold(true) { allCompleted, todo ->
+            allCompleted && (todo.status == model.TodoStatus.Completed)
+        }
+    }
+
+    private fun isAnyCompleted(): Boolean {
+        return state.todos.any { todo ->
+            todo.status == model.TodoStatus.Completed
+        }
+    }
+
+    private fun setAllStatus(newStatus: TodoStatus) {
+        setState {
+            todos = todos.map { todo -> todo.copy(status = newStatus)  }
+        }
     }
 
     class State(var todo: Todo, var todos: Collection<Todo>) : RState

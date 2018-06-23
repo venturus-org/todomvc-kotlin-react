@@ -23,14 +23,8 @@ class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
                                 //TODO: Verify warning about uncontrolled components
                                 checked = todo.status == TodoStatus.Completed
                                 onChangeFunction = { event ->
-
                                     val isChecked = event.currentTarget.asDynamic().checked as Boolean
-
-                                    val currentStatus = if (isChecked) {
-                                        TodoStatus.Completed
-                                    } else {
-                                        TodoStatus.Pending
-                                    }
+                                    val currentStatus = TodoStatus.fromBoolean(isChecked)
 
                                     updateTodos(todo, todo.copy(status = currentStatus))
                                 }
