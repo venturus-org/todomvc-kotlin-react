@@ -10,7 +10,6 @@ import react.*
 import react.dom.*
 import model.Todo
 import components.todoList
-import utils.pluralize
 import utils.translate
 
 data class ApplicationOptions(
@@ -46,7 +45,7 @@ class App : RComponent<App.Props, App.State>() {
                         this.attrs["htmlFor"] = "toggle-all"
                         this.attrs.title = "Mark all as complete".translate()
                     }
-                    todoList(::updateTodo, state.todos)
+                    todoList(::updateTodos, state.todos)
                 }
                 todoBar(state.todos.size, ::clearCompleted)
 
@@ -58,7 +57,7 @@ class App : RComponent<App.Props, App.State>() {
     private fun createTodo(newTodo: Todo) {
         if (newTodo.description.trim().isNotEmpty()) {
             val trimmedTodo = newTodo.copy(newTodo.description.trim())
-            
+
             setState {
                 todo = Todo()
                 todos = todos.plus(trimmedTodo)
@@ -66,9 +65,15 @@ class App : RComponent<App.Props, App.State>() {
         }
     }
 
-    private fun updateTodo(newTodo: Todo) {
+    private fun updateTodo(updatedTodo: Todo) {
         setState {
-            todo = newTodo
+            todo = updatedTodo
+        }
+    }
+
+    private fun updateTodos(updatedTodos: Collection<Todo>) {
+        setState {
+            todos = updatedTodos
         }
     }
 

@@ -9,7 +9,6 @@ import react.RComponent
 import react.RProps
 import react.RState
 import react.dom.*
-import utils.rawValue
 import utils.value
 
 class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
@@ -21,16 +20,19 @@ class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
                     div(classes = "view") {
                         input(classes = "toggle", type = InputType.checkBox) {
                             this.attrs {
+                                //TODO: Verify warning about uncontrolled components
                                 checked = todo.status == TodoStatus.Completed
                                 onChangeFunction = { event ->
 
-                                    val currentStatus = if (event.rawValue as Boolean) {
+                                    val isChecked = event.currentTarget.asDynamic().checked as Boolean
+
+                                    val currentStatus = if (isChecked) {
                                         TodoStatus.Completed
                                     } else {
                                         TodoStatus.Pending
                                     }
 
-                                    props.update(todo.copy(status = currentStatus))
+                                    updateTodos(todo, todo.copy(status = currentStatus))
                                 }
                             }
                         }
@@ -41,7 +43,7 @@ class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
                         this.attrs {
                             value = todo.description
                             onChangeFunction = { event ->
-                                props.update(todo.copy(description = event.value))
+                                updateTodos(todo, todo.copy(description = event.value))
                             }
                         }
                     }
@@ -50,10 +52,20 @@ class TodoList(props: Props): RComponent<TodoList.Props, RState>() {
         }
     }
 
-    class Props(var todos: Collection<Todo>, var update: (Todo) -> Unit) : RProps
+    private fun updateTodos(todo: Todo, updatedTodo: Todo) {
+        //TODO: Review to check correctness.
+        val todoIndex = props.todos.indexOf(todo)
+        val updatedTodos : List<Todo> = props.todos.toMutableList().apply {
+            this[todoIndex] = updatedTodo
+        }
+
+        props.updateList(updatedTodos)
+    }
+
+    class Props(var todos: Collection<Todo>, var updateList: (Collection<Todo>) -> Unit) : RProps
 }
 
-fun RBuilder.todoList(update: (Todo) -> Unit, todos: Collection<Todo>) = child(TodoList::class) {
+fun RBuilder.todoList(updateList: (Collection<Todo>) -> Unit, todos: Collection<Todo>) = child(TodoList::class) {
     attrs.todos = todos
-    attrs.update = update
+    attrs.updateList = updateList
 }
