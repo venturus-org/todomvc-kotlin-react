@@ -12,7 +12,9 @@ import model.Todo
 import components.todoList
 import kotlinx.html.js.onChangeFunction
 import model.TodoStatus
+import org.w3c.dom.get
 import utils.translate
+import kotlin.browser.localStorage
 
 data class ApplicationOptions(
         val language: String
@@ -20,19 +22,33 @@ data class ApplicationOptions(
 
 object AppOptions {
     var language = "no-language"
+    var localStorageKey = "todos-koltin-react"
 }
 
 class App : RComponent<App.Props, App.State>() {
 
     override fun componentWillMount() {
+
+        val storedTodos = loadTodos()
+
         setState {
             todo = Todo()
-            todos = listOf()
+            todos = storedTodos
         }
 
         AppOptions.apply {
             language = props.options.language
         }
+    }
+
+    private fun loadTodos(): List<Todo> {
+        val storedTodosJSON = localStorage.get(AppOptions.localStorageKey)
+        val storedTodos = if (storedTodosJSON != null) {
+            JSON.parse<Array<Todo>>(storedTodosJSON).asList()
+        } else {
+            listOf()
+        }
+        return storedTodos
     }
 
     override fun RBuilder.render() {
@@ -74,10 +90,12 @@ class App : RComponent<App.Props, App.State>() {
     private fun createTodo(newTodo: Todo) {
         if (newTodo.description.trim().isNotEmpty()) {
             val trimmedTodo = newTodo.copy(newTodo.description.trim())
+            val newTodos = state.todos.plus(trimmedTodo)
+
+            updateTodos(newTodos)
 
             setState {
                 todo = Todo()
-                todos = todos.plus(trimmedTodo)
             }
         }
     }
@@ -92,6 +110,8 @@ class App : RComponent<App.Props, App.State>() {
         setState {
             todos = updatedTodos
         }
+
+        localStorage.setItem(AppOptions.localStorageKey, JSON.stringify(updatedTodos))
     }
 
     private fun clearCompleted() {
