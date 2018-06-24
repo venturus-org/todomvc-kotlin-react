@@ -24,9 +24,9 @@ class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
                 this.attrs {
                     autoFocus = true
                     placeholder = "What needs to be done?".translate()
-                    value = props.todo.description
+                    value = props.todo.title
                     onChangeFunction = { event ->
-                        props.update(props.todo.copy(description = event.value))
+                        props.update(props.todo.copy(title = event.value))
                     }
                     onKeyDownFunction = { keyEvent ->
                         val key = Keys.fromString(keyEvent.asDynamic().key)

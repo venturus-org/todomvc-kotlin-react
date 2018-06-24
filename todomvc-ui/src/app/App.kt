@@ -11,7 +11,6 @@ import react.dom.*
 import model.Todo
 import components.todoList
 import kotlinx.html.js.onChangeFunction
-import model.TodoStatus
 import org.w3c.dom.get
 import utils.translate
 import kotlin.browser.localStorage
@@ -44,10 +43,13 @@ class App : RComponent<App.Props, App.State>() {
     private fun loadTodos(): List<Todo> {
         val storedTodosJSON = localStorage.get(AppOptions.localStorageKey)
         val storedTodos = if (storedTodosJSON != null) {
-            JSON.parse<Array<Todo>>(storedTodosJSON).asList()
+            JSON.parse<Array<Todo>>(storedTodosJSON).map {
+                Todo(it.id, it.title, it.completed)
+            }.toList()
         } else {
             listOf()
         }
+
         return storedTodos
     }
 
@@ -69,9 +71,8 @@ class App : RComponent<App.Props, App.State>() {
                             ref { it?.indeterminate = someButNotAllChecked }
                             onChangeFunction = {event ->
                                 val isChecked = event.currentTarget.asDynamic().checked as Boolean
-                                val status = TodoStatus.fromBoolean(isChecked)
 
-                                setAllStatus(status)
+                                setAllStatus(isChecked)
                             }
                         }
                     }
@@ -81,15 +82,15 @@ class App : RComponent<App.Props, App.State>() {
                     }
                     todoList(::updateTodos, state.todos)
                 }
-                todoBar(pendingTodos().size, ::clearCompleted)
+                todoBar(pendingTodos().size, state.todos.any {todo -> todo.completed }, ::clearCompleted)
             }
         }
         info()
     }
 
     private fun createTodo(newTodo: Todo) {
-        if (newTodo.description.trim().isNotEmpty()) {
-            val trimmedTodo = newTodo.copy(newTodo.description.trim())
+        if (newTodo.title.trim().isNotEmpty()) {
+            val trimmedTodo = newTodo.copy(newTodo.title.trim())
             val newTodos = state.todos.plus(trimmedTodo)
 
             updateTodos(newTodos)
@@ -111,7 +112,7 @@ class App : RComponent<App.Props, App.State>() {
             todos = updatedTodos
         }
 
-        localStorage.setItem(AppOptions.localStorageKey, JSON.stringify(updatedTodos))
+        localStorage.setItem(AppOptions.localStorageKey, JSON.stringify(updatedTodos.toTypedArray()))
     }
 
     private fun clearCompleted() {
@@ -122,24 +123,22 @@ class App : RComponent<App.Props, App.State>() {
 
     private fun isAllCompleted(): Boolean {
         return state.todos.fold(true) { allCompleted, todo ->
-            allCompleted && (todo.status == model.TodoStatus.Completed)
+            allCompleted && todo.completed
         }
     }
 
     private fun isAnyCompleted(): Boolean {
-        return state.todos.any { todo ->
-            todo.status == model.TodoStatus.Completed
-        }
+        return state.todos.any { todo ->  todo.completed }
     }
 
-    private fun setAllStatus(newStatus: TodoStatus) {
+    private fun setAllStatus(newStatus: Boolean) {
         setState {
-            todos = todos.map { todo -> todo.copy(status = newStatus)  }
+            todos = todos.map { todo -> todo.copy(completed = newStatus)  }
         }
     }
 
     private fun pendingTodos() : Collection<Todo> {
-        return state.todos.filter { todo -> todo.status != TodoStatus.Completed }
+        return state.todos.filter { todo -> !todo.completed }
     }
 
     class State(var todo: Todo, var todos: Collection<Todo>) : RState

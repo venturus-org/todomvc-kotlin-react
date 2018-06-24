@@ -3,7 +3,6 @@ package components
 import kotlinx.html.InputType
 import kotlinx.html.js.*
 import model.Todo
-import model.TodoStatus
 import react.*
 import react.dom.*
 import utils.Keys
@@ -14,48 +13,51 @@ class TodoList(props: Props): RComponent<TodoList.Props, TodoList.State>() {
     override fun componentWillMount() {
         setState {
             editingText = ""
-            isEditing = false
+            editedTodo = null
         }
     }
 
     override fun componentWillUpdate(nextProps: Props, nextState: State) {
-        val editingTodo = nextProps.todos.find { todo ->
-            todo.status == TodoStatus.Editing
+        if (state.editedTodo == null && nextState.editedTodo != null) {
+            nextState.editingText = nextState.editedTodo?.title ?: ""
         }
 
-        if(!this.state.isEditing && editingTodo != null) {
-            nextState.isEditing = true
-            nextState.editingText = editingTodo.description
-        }
-
-        if(this.state.isEditing && editingTodo == null) {
-            nextState.isEditing = false
+        if(state.editedTodo != null && nextState.editedTodo == null) {
+            nextState.editingText = ""
         }
     }
 
     override fun RBuilder.render() {
         ul(classes = "todo-list") {
             props.todos.map { todo ->
-                li(classes = todo.status.className) {
+
+                val classes = when {
+                    todo.completed -> "completed"
+                    todo == state.editedTodo -> "editing"
+                    else ->
+                    ""
+                }
+
+                li(classes = classes) {
                     attrs {
+
                         onDoubleClickFunction = {
-                            updateTodos(todo, todo.copy(status = TodoStatus.Editing))
+                            setState { editedTodo = todo }
                         }
                     }
                     div(classes = "view") {
                         input(classes = "toggle", type = InputType.checkBox) {
                             this.attrs {
                                 //TODO: Verify warning about uncontrolled components
-                                checked = todo.status == TodoStatus.Completed
+                                checked = todo.completed
                                 onChangeFunction = { event ->
                                     val isChecked = event.currentTarget.asDynamic().checked as Boolean
-                                    val currentStatus = TodoStatus.fromBoolean(isChecked)
 
-                                    updateTodos(todo, todo.copy(status = currentStatus))
+                                    updateTodos(todo, todo.copy(completed = isChecked))
                                 }
                             }
                         }
-                        label { + todo.description }
+                        label { + todo.title }
                         button(classes = "destroy") {
                             attrs {
                                 onClickFunction = { removeTodo(todo) }
@@ -75,7 +77,7 @@ class TodoList(props: Props): RComponent<TodoList.Props, TodoList.State>() {
                                 val key = Keys.fromString(keyEvent.asDynamic().key)
                                 when(key) {
                                     Keys.Enter -> { finishEditing(todo) }
-                                    Keys.Escape -> { cancelEditing(todo) }
+                                    Keys.Escape -> { endEditing() }
                                 }
                             }
 
@@ -86,18 +88,18 @@ class TodoList(props: Props): RComponent<TodoList.Props, TodoList.State>() {
         }
     }
 
-    //TODO: Review if todo should restore it's previous status or become 'pending'
     private fun finishEditing(todo: Todo) {
         if(state.editingText.isBlank()) {
             removeTodo(todo)
         } else {
-            updateTodos(todo, todo.copy(description = state.editingText, status = model.TodoStatus.Pending))
+            updateTodos(todo, todo.copy(title = state.editingText))
         }
+
+        endEditing()
     }
 
-    //TODO: Review if todo should restore it's previous status or become 'pending'
-    private fun cancelEditing(todo: Todo) {
-        updateTodos(todo, todo.copy(status = model.TodoStatus.Pending))
+    private fun endEditing() {
+        setState { editedTodo = null }
     }
 
     private fun removeTodo(todo: Todo) {
@@ -117,7 +119,7 @@ class TodoList(props: Props): RComponent<TodoList.Props, TodoList.State>() {
     }
 
     class Props(var todos: Collection<Todo>, var updateList: (Collection<Todo>) -> Unit) : RProps
-    class State(var editingText: String,var isEditing: Boolean) : RState
+    class State(var editingText: String,var editedTodo: Todo?) : RState
 }
 
 fun RBuilder.todoList(updateList: (Collection<Todo>) -> Unit, todos: Collection<Todo>) = child(TodoList::class) {
