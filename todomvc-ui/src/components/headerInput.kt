@@ -3,13 +3,13 @@ package headerInput
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onKeyDownFunction
-import kotlinx.html.onKeyDown
 import model.Todo
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
 import react.dom.*
+import utils.Keys
 import utils.translate
 import utils.value
 
@@ -29,7 +29,8 @@ class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
                         props.update(props.todo.copy(description = event.value))
                     }
                     onKeyDownFunction = { keyEvent ->
-                        if(keyEvent.asDynamic().key == "Enter") {
+                        val key = Keys.fromString(keyEvent.asDynamic().key)
+                        if(key == Keys.Enter) {
                             props.create(props.todo)
                         }
                     }
