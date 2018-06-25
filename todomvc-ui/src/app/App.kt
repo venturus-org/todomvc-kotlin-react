@@ -12,6 +12,7 @@ import model.Todo
 import components.todoList
 import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.get
+import org.w3c.dom.set
 import utils.translate
 import kotlin.browser.localStorage
 
@@ -28,11 +29,8 @@ class App : RComponent<App.Props, App.State>() {
 
     override fun componentWillMount() {
 
-        val storedTodos = loadTodos()
-
         setState {
-            todo = Todo()
-            todos = storedTodos
+            todos = loadTodos()
         }
 
         AppOptions.apply {
@@ -41,21 +39,20 @@ class App : RComponent<App.Props, App.State>() {
     }
 
     private fun loadTodos(): List<Todo> {
-        val storedTodosJSON = localStorage.get(AppOptions.localStorageKey)
-        val storedTodos = if (storedTodosJSON != null) {
+        val storedTodosJSON = localStorage[AppOptions.localStorageKey]
+
+        return if (storedTodosJSON != null) {
             JSON.parse<Array<Todo>>(storedTodosJSON).map {
-                Todo(it.id, it.title, it.completed)
+                Todo(it.title, it.completed)
             }.toList()
         } else {
-            listOf()
+            emptyList()
         }
-
-        return storedTodos
     }
 
     override fun RBuilder.render() {
         section("todoapp") {
-            headerInput(::createTodo, ::updateTodo, state.todo)
+            headerInput(::createTodo)
 
             if(state.todos.isNotEmpty()) {
                 val allChecked = isAllCompleted()
@@ -66,6 +63,7 @@ class App : RComponent<App.Props, App.State>() {
                         this.attrs {
                             id = "toggle-all"
                             checked = allChecked
+
                             //TODO: Review if there is 'indetermitate' support
                             //https://github.com/facebook/react/issues/1798
                             ref { it?.indeterminate = someButNotAllChecked }
@@ -80,7 +78,8 @@ class App : RComponent<App.Props, App.State>() {
                         this.attrs["htmlFor"] = "toggle-all"
                         this.attrs.title = "Mark all as complete".translate()
                     }
-                    todoList(::updateTodos, state.todos)
+
+                    todoList(::removeTodo, ::updateTodo, state.todos)
                 }
                 todoBar(pendingTodos().size, state.todos.any {todo -> todo.completed }, ::clearCompleted)
             }
@@ -88,37 +87,44 @@ class App : RComponent<App.Props, App.State>() {
         info()
     }
 
-    private fun createTodo(newTodo: Todo) {
-        if (newTodo.title.trim().isNotEmpty()) {
-            val trimmedTodo = newTodo.copy(newTodo.title.trim())
-            val newTodos = state.todos.plus(trimmedTodo)
+    private fun removeTodo(todo: Todo) {
+        setState {
+            todos = todos.minus(todo)
+        }
 
-            updateTodos(newTodos)
+        storeTodos()
+    }
 
-            setState {
-                todo = Todo()
+    private fun updateTodo(todo: Todo) {
+        setState {
+            val todoIndex = todos.indexOf(todo)
+
+            todos = todos.toMutableList().apply {
+                this[todoIndex] = todo
             }
         }
+
+        storeTodos()
     }
 
-    private fun updateTodo(updatedTodo: Todo) {
+    private fun createTodo(todo: Todo) {
         setState {
-            todo = updatedTodo
+            todos = state.todos.plus(todo)
         }
+
+        storeTodos()
     }
 
-    private fun updateTodos(updatedTodos: Collection<Todo>) {
-        setState {
-            todos = updatedTodos
-        }
-
-        localStorage.setItem(AppOptions.localStorageKey, JSON.stringify(updatedTodos.toTypedArray()))
+    private fun storeTodos() {
+        localStorage.set(AppOptions.localStorageKey, JSON.stringify(state.todos.toTypedArray()))
     }
 
     private fun clearCompleted() {
         setState {
             todos = pendingTodos()
         }
+
+        storeTodos()
     }
 
     private fun isAllCompleted(): Boolean {
@@ -137,11 +143,12 @@ class App : RComponent<App.Props, App.State>() {
         }
     }
 
-    private fun pendingTodos() : Collection<Todo> {
+    private fun pendingTodos() : List<Todo> {
         return state.todos.filter { todo -> !todo.completed }
     }
 
-    class State(var todo: Todo, var todos: Collection<Todo>) : RState
+    class State(var title: String,
+                var todos: List<Todo>) : RState
     class Props(var options: ApplicationOptions) : RProps
 
 }

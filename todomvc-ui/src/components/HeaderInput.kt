@@ -4,16 +4,13 @@ import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onKeyDownFunction
 import model.Todo
-import react.RBuilder
-import react.RComponent
-import react.RProps
-import react.RState
+import react.*
 import react.dom.*
 import utils.Keys
 import utils.translate
 import utils.value
 
-class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
+class HeaderInput(props: Props): RComponent<HeaderInput.Props, HeaderInput.State>() {
 
     override fun RBuilder.render() {
         header(classes = "header") {
@@ -24,14 +21,26 @@ class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
                 this.attrs {
                     autoFocus = true
                     placeholder = "What needs to be done?".translate()
-                    value = props.todo.title
+                    value = state.title
+
                     onChangeFunction = { event ->
-                        props.update(props.todo.copy(title = event.value))
+                        val newValue = event.value
+
+                        setState {
+                            title = newValue
+                        }
                     }
+
                     onKeyDownFunction = { keyEvent ->
                         val key = Keys.fromString(keyEvent.asDynamic().key)
-                        if(key == Keys.Enter) {
-                            props.create(props.todo)
+                        if (key == Keys.Enter) {
+                            if (state.title.isNotBlank()) {
+                                props.create(Todo(title = state.title))
+                            }
+
+                            setState {
+                                title = ""
+                            }
                         }
                     }
                 }
@@ -39,13 +48,10 @@ class HeaderInput(props: Props): RComponent<HeaderInput.Props, RState>() {
         }
     }
 
-    class Props(var todo: Todo,
-                var update: (Todo) -> Unit,
-                var create: (Todo) -> Unit) : RProps
+    class Props(var create: (Todo) -> Unit) : RProps
+    class State(var title: String) : RState
 }
 
-fun RBuilder.headerInput(create: (Todo) -> Unit, update: (Todo) -> Unit, todo: Todo) = child(HeaderInput::class) {
-    attrs.todo = todo
-    attrs.update = update
+fun RBuilder.headerInput(create: (Todo) -> Unit) = child(HeaderInput::class) {
     attrs.create = create
 }
