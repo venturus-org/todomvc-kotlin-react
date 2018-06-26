@@ -20,14 +20,12 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
     override fun componentWillMount() {
         setState {
             editText = props.todo.title
-            completed = props.todo.completed
         }
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
         setState {
             editText = nextProps.todo.title
-            completed = nextProps.todo.completed
         }
     }
 
@@ -37,10 +35,9 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         div(classes = "view") {
             input(classes = "toggle", type = InputType.checkBox) {
                 this.attrs {
-                    checked = state.completed
-                    onClickFunction = { event ->
-                        val checked = event.currentTarget.asDynamic().checked as Boolean
-                        props.updateTodo(props.todo.copy(completed = checked))
+                    checked = props.todo.completed
+                    onChangeFunction = {
+                        props.updateTodo(props.todo.copy(completed = !props.todo.completed))
                     }
                 }
             }
@@ -68,11 +65,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
                 onKeyUpFunction = ::handleKeyUp
                 autoFocus = true
             }
-
-
         }
-
-
     }
 
     private fun finishEditing(title: String, todo: Todo) {
@@ -99,7 +92,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
     }
 
     class Props(var todo: Todo, var editing: Boolean, var removeTodo: (Todo) -> Unit, var updateTodo: (Todo) -> Unit, var endEditing: () -> Unit) : RProps
-    class State(var editText: String, var completed: Boolean) : RState
+    class State(var editText: String) : RState
 }
 
 fun RBuilder.todoItem(todo: Todo, editing: Boolean, removeTodo: (Todo) -> Unit, updateTodo: (Todo) -> Unit, endEditing: () -> Unit) = child(TodoItem::class) {

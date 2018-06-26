@@ -18,6 +18,10 @@ data class ApplicationOptions(
         val language: String
 )
 
+enum class TodoFilter {
+    ANY, COMPLETED, PENDING
+}
+
 object AppOptions {
     var language = "no-language"
     var localStorageKey = "todos-koltin-react"
@@ -29,6 +33,7 @@ class App : RComponent<App.Props, App.State>() {
         console.log("component will mount app")
         setState {
             todos = loadTodos()
+            filter = TodoFilter.ANY
         }
 
         AppOptions.apply {
@@ -75,14 +80,29 @@ class App : RComponent<App.Props, App.State>() {
                         }
                     }
 
-                    todoList(::removeTodo, ::updateTodo, state.todos)
+                    todoList(::removeTodo, ::updateTodo, state.todos, state.filter)
                 }
-                todoBar(pendingTodos().size, state.todos.any {todo -> todo.completed }, ::clearCompleted)
+                todoBar(pendingCount = countPending(),
+                        anyCompleted = containsAnyComplete(),
+                        clearCompleted = ::clearCompleted,
+                        currentFilter = state.filter,
+                        updateFilter = ::updateFilter)
             }
 
         }
         info()
     }
+
+
+
+
+    private fun updateFilter(newFilter: TodoFilter) {
+        setState {
+            filter = newFilter
+        }
+    }
+
+    private fun countPending() = pendingTodos().size
 
     private fun removeTodo(todo: Todo) {
         console.log("removeTodo [${todo.id}] ${todo.title}")
@@ -101,7 +121,6 @@ class App : RComponent<App.Props, App.State>() {
 
         setState {
             todos = updatedTodos
-            console.log("updateState todos!!!")
         }
     }
 
@@ -134,8 +153,10 @@ class App : RComponent<App.Props, App.State>() {
     }
 
     private fun isAnyCompleted(): Boolean {
-        return state.todos.any { todo ->  todo.completed }
+        return containsAnyComplete()
     }
+
+    private fun containsAnyComplete() = state.todos.any { todo -> todo.completed }
 
     private fun setAllStatus(newStatus: Boolean) {
         setState {
@@ -147,8 +168,8 @@ class App : RComponent<App.Props, App.State>() {
         return state.todos.filter { todo -> !todo.completed }
     }
 
-    class State(var title: String,
-                var todos: List<Todo>) : RState
+    class State(var todos: List<Todo>,
+                var filter: TodoFilter) : RState
     class Props(var options: ApplicationOptions) : RProps
 
 }
