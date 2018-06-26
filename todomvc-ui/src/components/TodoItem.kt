@@ -24,6 +24,14 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         }
     }
 
+    override fun componentWillReceiveProps(nextProps: Props) {
+        setState {
+            editText = nextProps.todo.title
+            completed = nextProps.todo.completed
+        }
+    }
+
+
     override fun RBuilder.render() {
 
         div(classes = "view") {

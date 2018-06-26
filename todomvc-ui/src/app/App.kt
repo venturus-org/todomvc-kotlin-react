@@ -26,6 +26,7 @@ object AppOptions {
 class App : RComponent<App.Props, App.State>() {
 
     override fun componentWillMount() {
+        console.log("component will mount app")
         setState {
             todos = loadTodos()
         }
