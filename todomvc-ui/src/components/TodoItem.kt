@@ -32,10 +32,14 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
     override fun RBuilder.render() {
 
+        console.log("${props.todo.title} ${props.todo.completed}")
+
         div(classes = "view") {
             input(classes = "toggle", type = InputType.checkBox) {
-                this.attrs {
+
+                attrs {
                     checked = props.todo.completed
+
                     onChangeFunction = {
                         props.updateTodo(props.todo.copy(completed = !props.todo.completed))
                     }
