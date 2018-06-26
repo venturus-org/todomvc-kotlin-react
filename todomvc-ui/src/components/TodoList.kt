@@ -45,11 +45,14 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
                     }
 
                     todoItem(
-                        todo = todo,
+                        title = todo.title,
+                        completed = todo.completed,
                         editing = isEditing,
-                        removeTodo = props.removeTodo,
-                        updateTodo = props.updateTodo,
-                        endEditing = ::endEditing
+                        endEditing = ::endEditing,
+                        removeTodo = { props.removeTodo(todo) },
+                        updateTodo = { title,completed ->
+                            props.updateTodo(todo.copy(title = title, completed = completed))
+                        }
                     )
                 }
             }

@@ -19,38 +19,38 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
     override fun componentWillMount() {
         setState {
-            editText = props.todo.title
+            editText = props.title
         }
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
         setState {
-            editText = nextProps.todo.title
+            editText = nextProps.title
         }
     }
 
     override fun RBuilder.render() {
 
-        console.log("${props.todo.title} ${props.todo.completed}")
+        console.log("${props.title} ${props.completed}")
 
         div(classes = "view") {
             input(classes = "toggle", type = InputType.checkBox) {
 
                 attrs {
-                    checked = props.todo.completed
+                    checked = props.completed
 
                     onChangeFunction = {
-                        props.updateTodo(props.todo.copy(completed = !props.todo.completed))
+                        props.updateTodo(props.title, !props.completed)
                     }
                 }
             }
             label {
-                +props.todo.title
+                +props.title
             }
             button(classes = "destroy") {
                 attrs {
                     onClickFunction = {
-                        props.removeTodo(props.todo)
+                        props.removeTodo()
                     }
                 }
             }
@@ -64,7 +64,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
                         editText = text
                     }
                 }
-                onBlurFunction = { finishEditing(state.editText, props.todo) }
+                onBlurFunction = { finishEditing(state.editText) }
                 onKeyUpFunction = ::handleKeyUp
 
             }
@@ -77,11 +77,11 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         }
     }
 
-    private fun finishEditing(title: String, todo: Todo) {
+    private fun finishEditing(title: String) {
         if (title.isNotBlank()) {
-            props.updateTodo(todo.copy(title = title))
+            props.updateTodo(title, props.completed)
         } else {
-            props.removeTodo(todo)
+            props.removeTodo()
         }
 
         props.endEditing()
@@ -91,7 +91,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         val key = Keys.fromString(keyEvent.asDynamic().key as String)
         when (key) {
             Keys.Enter -> {
-                finishEditing(state.editText, props.todo)
+                finishEditing(state.editText)
             }
             Keys.Escape -> {
                 props.endEditing()
@@ -100,12 +100,13 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
     }
 
-    class Props(var todo: Todo, var editing: Boolean, var removeTodo: (Todo) -> Unit, var updateTodo: (Todo) -> Unit, var endEditing: () -> Unit) : RProps
+    class Props(var title: String,var completed: Boolean, var editing: Boolean, var removeTodo: () -> Unit, var updateTodo: (String, Boolean) -> Unit, var endEditing: () -> Unit) : RProps
     class State(var editText: String) : RState
 }
 
-fun RBuilder.todoItem(todo: Todo, editing: Boolean, removeTodo: (Todo) -> Unit, updateTodo: (Todo) -> Unit, endEditing: () -> Unit) = child(TodoItem::class) {
-    attrs.todo = todo
+fun RBuilder.todoItem(title: String, completed: Boolean, editing: Boolean, removeTodo: () -> Unit, updateTodo: (String, Boolean) -> Unit, endEditing: () -> Unit) = child(TodoItem::class) {
+    attrs.title = title
+    attrs.completed = completed
     attrs.editing = editing
     attrs.removeTodo = removeTodo
     attrs.updateTodo = updateTodo
