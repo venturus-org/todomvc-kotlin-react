@@ -15,13 +15,10 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
     }
 
     override fun RBuilder.render() {
+        console.log("TodoList render")
         ul(classes = "todo-list") {
-
-
             props.todos.forEachIndexed { idx, todo ->
-
                 val isEditing = idx == state.editingIdx
-
 
                 val classes = when {
                     todo.completed -> "completed"
@@ -31,7 +28,6 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
 
 
                 li(classes = classes) {
-
                     attrs {
                         onDoubleClickFunction = {
                             setState {
@@ -45,15 +41,17 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
                         editing = isEditing,
                         removeTodo = props.removeTodo,
                         updateTodo = props.updateTodo,
-                        endEditing = {
-                            setState {
-                                editingIdx = -1
-                            }
-                        }
+                        endEditing = ::endEditing
                     )
 
                 }
             }
+        }
+    }
+
+    private fun endEditing() {
+        setState {
+            editingIdx = -1
         }
     }
 

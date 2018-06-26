@@ -4,7 +4,7 @@ import kotlinx.html.InputType
 import kotlinx.html.js.onBlurFunction
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.onKeyDownFunction
+import kotlinx.html.js.onKeyUpFunction
 import model.Todo
 import org.w3c.dom.events.Event
 import react.*
@@ -25,7 +25,6 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
     }
 
     override fun RBuilder.render() {
-        val todo = props.todo
 
         div(classes = "view") {
             input(classes = "toggle", type = InputType.checkBox) {
@@ -33,17 +32,16 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
                     checked = state.completed
                     onClickFunction = { event ->
                         val checked = event.currentTarget.asDynamic().checked as Boolean
-                        props.updateTodo(todo.copy(completed = checked))
+                        props.updateTodo(props.todo.copy(completed = checked))
                     }
                 }
             }
             label {
-                +todo.title
+                +props.todo.title
             }
             button(classes = "destroy") {
                 attrs {
                     onClickFunction = {
-                        console.log("Removing [${props.todo.id}] ${props.todo.title}")
                         props.removeTodo(props.todo)
                     }
                 }
@@ -58,8 +56,8 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
                         editText = text
                     }
                 }
-                onBlurFunction = { finishEditing(state.editText, todo) }
-                onKeyDownFunction = ::handleKeyDown
+                onBlurFunction = { finishEditing(state.editText, props.todo) }
+                onKeyUpFunction = ::handleKeyUp
                 autoFocus = true
             }
 
@@ -79,7 +77,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         props.endEditing()
     }
 
-    private fun handleKeyDown(keyEvent: Event) {
+    private fun handleKeyUp(keyEvent: Event) {
         val key = Keys.fromString(keyEvent.asDynamic().key as String)
         when (key) {
             Keys.Enter -> {

@@ -84,23 +84,29 @@ class App : RComponent<App.Props, App.State>() {
     }
 
     private fun removeTodo(todo: Todo) {
+        console.log("removeTodo [${todo.id}] ${todo.title}")
         saveTodos(state.todos - todo)
     }
 
     private fun createTodo(todo: Todo) {
+        console.log("createTodo [${todo.id}] ${todo.title}")
         saveTodos(state.todos + todo)
     }
 
     private fun saveTodos(updatedTodos: List<Todo>) {
-
         console.log("saving: ${updatedTodos.toTypedArray()}")
+
+        storeTodos(updatedTodos)
+
         setState {
             todos = updatedTodos
+            console.log("updateState todos!!!")
         }
-        storeTodos(updatedTodos)
     }
 
     private fun updateTodo(todo: Todo) {
+        console.log("updateTodo [${todo.id}] ${todo.title}")
+
         saveTodos(state.todos.map { oldTodo ->
             if (todo.id == oldTodo.id) {
                 todo
