@@ -10,8 +10,10 @@ import react.dom.*
 import model.Todo
 import components.todoList
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.title
 import org.w3c.dom.get
 import org.w3c.dom.set
+import utils.translate
 import kotlin.browser.localStorage
 
 data class ApplicationOptions(
@@ -65,20 +67,24 @@ class App : RComponent<App.Props, App.State>() {
 
                 section("main") {
                     input(InputType.checkBox, classes = "toggle-all") {
-                        this.attrs {
+                        attrs {
                             id = "toggle-all"
                             checked = allChecked
 
-                            //TODO: Review if there is 'indetermitate' support
-                            //https://github.com/facebook/react/issues/1798
-                            ref { it?.indeterminate = someButNotAllChecked }
                             onChangeFunction = {event ->
                                 val isChecked = event.currentTarget.asDynamic().checked as Boolean
 
                                 setAllStatus(isChecked)
                             }
                         }
+                        ref { it?.indeterminate = someButNotAllChecked }
                     }
+                    label {
+                        attrs["htmlFor"] = "toggle-all"
+                        attrs.title = "Mark all as complete".translate()
+                    }
+
+
 
                     todoList(::removeTodo, ::updateTodo, state.todos, state.filter)
                 }

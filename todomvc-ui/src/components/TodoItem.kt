@@ -29,7 +29,6 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         }
     }
 
-
     override fun RBuilder.render() {
 
         console.log("${props.todo.title} ${props.todo.completed}")
@@ -67,7 +66,13 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
                 }
                 onBlurFunction = { finishEditing(state.editText, props.todo) }
                 onKeyUpFunction = ::handleKeyUp
-                autoFocus = true
+
+            }
+
+            if (props.editing) {
+                ref { it ->
+                    it?.focus()
+                }
             }
         }
     }
