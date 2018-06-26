@@ -1,8 +1,16 @@
 package model
 
-//TODO: Generate ids
+import kotlin.js.Date
+
+
 data class Todo (
-    //val id: Double = Date.now(),
+    val id: Double = guid(),
     val title: String,
     var completed: Boolean = false
 )
+
+
+fun guid(): Double {
+    return Date().getTime()
+}
+

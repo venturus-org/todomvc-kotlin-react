@@ -1,19 +1,26 @@
 package components
 
 import kotlinx.html.InputType
+import kotlinx.html.js.onBlurFunction
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.onKeyDownFunction
 import model.Todo
+import org.w3c.dom.events.Event
 import react.*
 import react.dom.button
 import react.dom.div
 import react.dom.input
 import react.dom.label
+import utils.Keys
+import utils.value
 
 class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
-    init {
+    override fun componentWillMount() {
         setState {
             editText = props.todo.title
+            completed = props.todo.completed
         }
     }
 
@@ -23,68 +30,70 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
         div(classes = "view") {
             input(classes = "toggle", type = InputType.checkBox) {
                 this.attrs {
-                    checked = todo.completed
-                    onChangeFunction = { event ->
+                    checked = state.completed
+                    onClickFunction = { event ->
                         val checked = event.currentTarget.asDynamic().checked as Boolean
-
                         props.updateTodo(todo.copy(completed = checked))
                     }
                 }
             }
-            label { +todo.title }
-            button(classes = "destroy") {
-//                attrs {
-//                    onClickFunction = { props.removeTodo(todo) }
-//                }
+            label {
+                +todo.title
             }
-
-            input(classes = "edit", type = InputType.text) {
-                this.attrs {
-                    value = state.editText
-//                    onChangeFunction = { event ->
-
-//                        val text = event.value
-//                        setState {
-//                            editText = text
-//                        }
-//                    }
-//                    onBlurFunction = { event ->
-//                        val title = state.editText
-//                        finishEditing(title, todo)
-//                    }
-//                    onKeyDownFunction = ::handleKeyDown
+            button(classes = "destroy") {
+                attrs {
+                    onClickFunction = {
+                        console.log("Removing [${props.todo.id}] ${props.todo.title}")
+                        props.removeTodo(props.todo)
+                    }
                 }
             }
+        }
+        input(classes = "edit", type = InputType.text) {
+            attrs {
+                value = state.editText
+                onChangeFunction = { event ->
+                    val text = event.value
+                    setState {
+                        editText = text
+                    }
+                }
+                onBlurFunction = { finishEditing(state.editText, todo) }
+                onKeyDownFunction = ::handleKeyDown
+                autoFocus = true
+            }
+
+
         }
 
 
     }
 
     private fun finishEditing(title: String, todo: Todo) {
-//        if (title.isNotBlank()) {
-//            props.updateTodo(todo.copy(title = title))
-//        } else {
-//            props.removeTodo(todo)
-//        }
-//
-//        props.endEditing()
+        if (title.isNotBlank()) {
+            props.updateTodo(todo.copy(title = title))
+        } else {
+            props.removeTodo(todo)
+        }
+
+        props.endEditing()
     }
 
-//    private fun handleKeyDown(keyEvent: Event) {
-//        val key = Keys.fromString(keyEvent.asDynamic().key)
-//        when (key) {
-//            Keys.Enter -> {
-//                finishEditing(state.editText, props.todo)
-//            }
-//            Keys.Escape -> {
-//                props.endEditing()
-//            }
-//        }
-//
-//    }
+    private fun handleKeyDown(keyEvent: Event) {
+        val key = Keys.fromString(keyEvent.asDynamic().key as String)
+        when (key) {
+            Keys.Enter -> {
+                finishEditing(state.editText, props.todo)
+            }
+            Keys.Escape -> {
+                props.endEditing()
+            }
+        }
+
+    }
 
     class Props(var todo: Todo, var editing: Boolean, var removeTodo: (Todo) -> Unit, var updateTodo: (Todo) -> Unit, var endEditing: () -> Unit) : RProps
-    class State(var editText: String) : RState
+    class State(var editText: String, var completed: Boolean) : RState
 }
 
 fun RBuilder.todoItem(todo: Todo, editing: Boolean, removeTodo: (Todo) -> Unit, updateTodo: (Todo) -> Unit, endEditing: () -> Unit) = child(TodoItem::class) {

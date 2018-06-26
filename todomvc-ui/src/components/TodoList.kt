@@ -8,7 +8,7 @@ import react.dom.ul
 
 class TodoList : RComponent<TodoList.Props, TodoList.State>() {
 
-    init {
+    override fun componentWillMount() {
         setState {
             editingIdx = -1
         }
@@ -16,9 +16,12 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
 
     override fun RBuilder.render() {
         ul(classes = "todo-list") {
-            props.todos.mapIndexed { idx, todo ->
+
+
+            props.todos.forEachIndexed { idx, todo ->
 
                 val isEditing = idx == state.editingIdx
+
 
                 val classes = when {
                     todo.completed -> "completed"
@@ -26,7 +29,9 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
                     else -> ""
                 }
 
+
                 li(classes = classes) {
+
                     attrs {
                         onDoubleClickFunction = {
                             setState {
@@ -35,11 +40,18 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
                         }
                     }
 
-                    todoItem(todo, isEditing, props.updateTodo, props.removeTodo, {
-                        setState {
-                            editingIdx = -1
+                    todoItem(
+                        todo = todo,
+                        editing = isEditing,
+                        removeTodo = props.removeTodo,
+                        updateTodo = props.updateTodo,
+                        endEditing = {
+                            setState {
+                                editingIdx = -1
+                            }
                         }
-                    })
+                    )
+
                 }
             }
         }

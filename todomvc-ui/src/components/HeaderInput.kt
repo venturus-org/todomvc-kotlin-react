@@ -1,16 +1,24 @@
-package headerInput
+package components
 
 import kotlinx.html.InputType
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onKeyDownFunction
 import model.Todo
 import react.*
-import react.dom.*
+import react.dom.h1
+import react.dom.header
+import react.dom.input
 import utils.Keys
 import utils.translate
 import utils.value
 
 class HeaderInput(props: Props): RComponent<HeaderInput.Props, HeaderInput.State>() {
+
+    override fun componentWillMount() {
+        setState {
+            title = ""
+        }
+    }
 
     override fun RBuilder.render() {
         header(classes = "header") {
@@ -32,7 +40,8 @@ class HeaderInput(props: Props): RComponent<HeaderInput.Props, HeaderInput.State
                     }
 
                     onKeyDownFunction = { keyEvent ->
-                        val key = Keys.fromString(keyEvent.asDynamic().key)
+                        val key = Keys.fromString(keyEvent.asDynamic().key as String)
+
                         if (key == Keys.Enter) {
                             if (state.title.isNotBlank()) {
                                 props.create(Todo(title = state.title))

@@ -1,11 +1,10 @@
 package app
 
 import components.info
+import components.headerInput
 import components.todoBar
-import headerInput.headerInput
 import kotlinx.html.InputType
 import kotlinx.html.id
-import kotlinx.html.title
 import react.*
 import react.dom.*
 import model.Todo
@@ -13,7 +12,6 @@ import components.todoList
 import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.get
 import org.w3c.dom.set
-import utils.translate
 import kotlin.browser.localStorage
 
 data class ApplicationOptions(
@@ -28,7 +26,6 @@ object AppOptions {
 class App : RComponent<App.Props, App.State>() {
 
     override fun componentWillMount() {
-
         setState {
             todos = loadTodos()
         }
@@ -43,7 +40,7 @@ class App : RComponent<App.Props, App.State>() {
 
         return if (storedTodosJSON != null) {
             JSON.parse<Array<Todo>>(storedTodosJSON).map {
-                Todo(it.title, it.completed)
+                Todo(it.id, it.title, it.completed)
             }.toList()
         } else {
             emptyList()
@@ -54,7 +51,9 @@ class App : RComponent<App.Props, App.State>() {
         section("todoapp") {
             headerInput(::createTodo)
 
-            if(state.todos.isNotEmpty()) {
+
+            if (state.todos.isNotEmpty()) {
+
                 val allChecked = isAllCompleted()
                 val someButNotAllChecked = !allChecked && isAnyCompleted()
 
@@ -74,57 +73,51 @@ class App : RComponent<App.Props, App.State>() {
                             }
                         }
                     }
-                    label {
-                        this.attrs["htmlFor"] = "toggle-all"
-                        this.attrs.title = "Mark all as complete".translate()
-                    }
 
                     todoList(::removeTodo, ::updateTodo, state.todos)
                 }
                 todoBar(pendingTodos().size, state.todos.any {todo -> todo.completed }, ::clearCompleted)
             }
+
         }
         info()
     }
 
     private fun removeTodo(todo: Todo) {
-        setState {
-            todos = todos.minus(todo)
-        }
-
-        storeTodos()
-    }
-
-    private fun updateTodo(todo: Todo) {
-        setState {
-            val todoIndex = todos.indexOf(todo)
-
-            todos = todos.toMutableList().apply {
-                this[todoIndex] = todo
-            }
-        }
-
-        storeTodos()
+        saveTodos(state.todos - todo)
     }
 
     private fun createTodo(todo: Todo) {
-        setState {
-            todos = state.todos.plus(todo)
-        }
-
-        storeTodos()
+        saveTodos(state.todos + todo)
     }
 
-    private fun storeTodos() {
-        localStorage.set(AppOptions.localStorageKey, JSON.stringify(state.todos.toTypedArray()))
+    private fun saveTodos(updatedTodos: List<Todo>) {
+
+        console.log("saving: ${updatedTodos.toTypedArray()}")
+        setState {
+            todos = updatedTodos
+        }
+        storeTodos(updatedTodos)
+    }
+
+    private fun updateTodo(todo: Todo) {
+        saveTodos(state.todos.map { oldTodo ->
+            if (todo.id == oldTodo.id) {
+                todo
+            } else {
+                oldTodo
+            }
+        })
+    }
+
+
+
+    private fun storeTodos(todos: List<Todo>) {
+        localStorage[AppOptions.localStorageKey] = JSON.stringify(todos.toTypedArray())
     }
 
     private fun clearCompleted() {
-        setState {
-            todos = pendingTodos()
-        }
-
-        storeTodos()
+        saveTodos(pendingTodos())
     }
 
     private fun isAllCompleted(): Boolean {
