@@ -45,8 +45,7 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
                     }
 
                     todoItem(
-                        title = todo.title,
-                        completed = todo.completed,
+                        todo = todo,
                         editing = isEditing,
                         endEditing = ::endEditing,
                         removeTodo = { props.removeTodo(todo) },

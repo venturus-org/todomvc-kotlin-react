@@ -18,34 +18,28 @@ import utils.value
 class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
     override fun componentWillMount() {
-        setState {
-            editText = props.title
-        }
+        state.editText = props.todo.title
     }
 
     override fun componentWillReceiveProps(nextProps: Props) {
-        setState {
-            editText = nextProps.title
-        }
+        state.editText = nextProps.todo.title
     }
 
     override fun RBuilder.render() {
-
-        console.log("${props.title} ${props.completed}")
-
         div(classes = "view") {
+
             input(classes = "toggle", type = InputType.checkBox) {
 
                 attrs {
-                    checked = props.completed
-
-                    onChangeFunction = {
-                        props.updateTodo(props.title, !props.completed)
+                    onChangeFunction = {event ->
+                        val c = event.currentTarget.asDynamic().checked as Boolean
+                        props.updateTodo(props.todo.title, c)
                     }
+                    ref { it?.checked = props.todo.completed }
                 }
             }
             label {
-                +props.title
+                +props.todo.title
             }
             button(classes = "destroy") {
                 attrs {
@@ -79,7 +73,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
     private fun finishEditing(title: String) {
         if (title.isNotBlank()) {
-            props.updateTodo(title, props.completed)
+            props.updateTodo(title, props.todo.completed)
         } else {
             props.removeTodo()
         }
@@ -100,13 +94,12 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
     }
 
-    class Props(var title: String,var completed: Boolean, var editing: Boolean, var removeTodo: () -> Unit, var updateTodo: (String, Boolean) -> Unit, var endEditing: () -> Unit) : RProps
-    class State(var editText: String) : RState
+    class Props(var todo: Todo, var editing: Boolean, var removeTodo: () -> Unit, var updateTodo: (String, Boolean) -> Unit, var endEditing: () -> Unit) : RProps
+    class State(var editText: String, var checked: Boolean) : RState
 }
 
-fun RBuilder.todoItem(title: String, completed: Boolean, editing: Boolean, removeTodo: () -> Unit, updateTodo: (String, Boolean) -> Unit, endEditing: () -> Unit) = child(TodoItem::class) {
-    attrs.title = title
-    attrs.completed = completed
+fun RBuilder.todoItem(todo: Todo, editing: Boolean, removeTodo: () -> Unit, updateTodo: (String, Boolean) -> Unit, endEditing: () -> Unit) = child(TodoItem::class) {
+    attrs.todo = todo
     attrs.editing = editing
     attrs.removeTodo = removeTodo
     attrs.updateTodo = updateTodo
