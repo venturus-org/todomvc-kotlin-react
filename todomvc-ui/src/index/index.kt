@@ -8,9 +8,9 @@ import kotlin.browser.*
 fun main(args: Array<String>) {
     requireAll(require.context("src", true, js("/\\.css$/")))
 
-    val options = ApplicationOptions(language = "language-en_US.json")
+    AppOptions.language = "language-en_US.json"
 
     render(document.getElementById("root")) {
-        app(options)
+        app()
     }
 }

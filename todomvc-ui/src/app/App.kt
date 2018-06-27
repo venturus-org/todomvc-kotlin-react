@@ -16,10 +16,6 @@ import org.w3c.dom.set
 import utils.translate
 import kotlin.browser.localStorage
 
-data class ApplicationOptions(
-        val language: String
-)
-
 enum class TodoFilter {
     ANY, COMPLETED, PENDING
 }
@@ -29,17 +25,13 @@ object AppOptions {
     var localStorageKey = "todos-koltin-react"
 }
 
-class App : RComponent<App.Props, App.State>() {
+class App : RComponent<RProps, App.State>() {
 
     override fun componentWillMount() {
         console.log("component will mount app")
         setState {
             todos = loadTodos()
             filter = TodoFilter.ANY
-        }
-
-        AppOptions.apply {
-            language = props.options.language
         }
     }
 
@@ -176,13 +168,9 @@ class App : RComponent<App.Props, App.State>() {
 
     class State(var todos: List<Todo>,
                 var filter: TodoFilter) : RState
-    class Props(var options: ApplicationOptions) : RProps
 
 }
 
-fun RBuilder.app(options: ApplicationOptions) = child(App::class) {
-    attrs {
-        this.options = options
-    }
+fun RBuilder.app() = child(App::class) {
 }
 
