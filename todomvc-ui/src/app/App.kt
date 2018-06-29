@@ -43,7 +43,6 @@ class App : RComponent<RProps, App.State>() {
             if (state.todos.isNotEmpty()) {
 
                 val allChecked = isAllCompleted()
-                val someButNotAllChecked = !allChecked && isAnyCompleted()
 
                 section("main") {
                     input(InputType.checkBox, classes = "toggle-all") {
@@ -57,7 +56,6 @@ class App : RComponent<RProps, App.State>() {
                                 setAllStatus(isChecked)
                             }
                         }
-                        ref { it?.indeterminate = someButNotAllChecked }
                     }
                     label {
                         attrs["htmlFor"] = "toggle-all"
@@ -149,11 +147,6 @@ class App : RComponent<RProps, App.State>() {
             allCompleted && todo.completed
         }
     }
-
-    private fun isAnyCompleted(): Boolean {
-        return state.todos.any { todo -> todo.completed }
-    }
-
 
     private fun pendingTodos() : List<Todo> {
         return state.todos.filter { todo -> !todo.completed }
