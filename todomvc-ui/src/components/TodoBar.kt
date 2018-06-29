@@ -1,8 +1,8 @@
 package components
 
-import app.TodoFilter
 import kotlinx.html.LI
 import kotlinx.html.js.onClickFunction
+import model.TodoFilter
 import react.RBuilder
 import react.RComponent
 import react.RProps
@@ -10,7 +10,7 @@ import react.RState
 import react.dom.*
 import utils.pluralize
 
-class TodoBar(props: Props): RComponent<TodoBar.Props, RState>() {
+class TodoBar : RComponent<TodoBar.Props, RState>() {
 
     override fun RBuilder.render() {
         footer("footer") {
@@ -22,46 +22,40 @@ class TodoBar(props: Props): RComponent<TodoBar.Props, RState>() {
 
             ul(classes = "filters") {
                 li {
-                    buildFilterItem(TodoFilter.ANY, "All")
+                    filterItem(TodoFilter.ANY, "All")
                 }
                 span {}
 
                 li {
-                    buildFilterItem(TodoFilter.PENDING, "Active")
+                    filterItem(TodoFilter.PENDING, "Active")
                 }
                 span {}
                 li {
-                    buildFilterItem(TodoFilter.COMPLETED, "Completed")
-
+                    filterItem(TodoFilter.COMPLETED, "Completed")
                 }
                 span {}
             }
+
             if (props.anyCompleted) {
                 button(classes = "clear-completed") {
                     + "Clear completed"
-                    attrs {
-                        onClickFunction = {
-                            props.clearCompleted()
-                        }
-                    }
+                    attrs.onClickFunction = { props.clearCompleted() }
                 }
             }
         }
     }
 
-    private fun RDOMBuilder<LI>.buildFilterItem(filter: TodoFilter, text: String) {
-        a(classes = if (props.currentFilter == filter) {
+    private fun RDOMBuilder<LI>.filterItem(filter: TodoFilter, text: String) {
+        val classes = if (props.currentFilter == filter) {
             "selected"
         } else {
             ""
-        }) {
-            attrs {
-                href = "#"
-                onClickFunction = {
-                    props.updateFilter(filter)
-                }
-            }
+        }
+
+        a(href = "#", classes = classes) {
             +text
+
+            attrs.onClickFunction = { props.updateFilter(filter) }
         }
     }
 

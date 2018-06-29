@@ -1,8 +1,8 @@
 package components
 
-import app.TodoFilter
 import kotlinx.html.js.onDoubleClickFunction
 import model.Todo
+import model.TodoFilter
 import react.*
 import react.dom.li
 import react.dom.ul
@@ -17,14 +17,13 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
 
     override fun RBuilder.render() {
         console.log("TodoList render")
+
         ul(classes = "todo-list") {
             val filter = props.filter
+
             props.todos.filter { todo ->
-                when (filter) {
-                    TodoFilter.ANY -> true
-                    TodoFilter.COMPLETED -> todo.completed
-                    TodoFilter.PENDING -> !todo.completed
-                }
+                filter.filter(todo)
+
             }.forEachIndexed { idx, todo ->
                 val isEditing = idx == state.editingIdx
 
@@ -36,22 +35,20 @@ class TodoList : RComponent<TodoList.Props, TodoList.State>() {
 
 
                 li(classes = classes) {
-                    attrs {
-                        onDoubleClickFunction = {
-                            setState {
-                                editingIdx = idx
-                            }
+                    attrs.onDoubleClickFunction = {
+                        setState {
+                            editingIdx = idx
                         }
                     }
 
                     todoItem(
-                        todo = todo,
-                        editing = isEditing,
-                        endEditing = ::endEditing,
-                        removeTodo = { props.removeTodo(todo) },
-                        updateTodo = { title,completed ->
-                            props.updateTodo(todo.copy(title = title, completed = completed))
-                        }
+                            todo = todo,
+                            editing = isEditing,
+                            endEditing = ::endEditing,
+                            removeTodo = { props.removeTodo(todo) },
+                            updateTodo = { title, completed ->
+                                props.updateTodo(todo.copy(title = title, completed = completed))
+                            }
                     )
                 }
             }

@@ -17,10 +17,6 @@ import utils.value
 
 class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
-    override fun componentWillMount() {
-        state.editText = props.todo.title
-    }
-
     override fun componentWillReceiveProps(nextProps: Props) {
         state.editText = nextProps.todo.title
     }
@@ -30,22 +26,19 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
 
             input(classes = "toggle", type = InputType.checkBox) {
 
-                attrs {
-                    onChangeFunction = {event ->
-                        val c = event.currentTarget.asDynamic().checked as Boolean
-                        props.updateTodo(props.todo.title, c)
-                    }
-                    ref { it?.checked = props.todo.completed }
+                attrs.onChangeFunction = {event ->
+                    val c = event.currentTarget.asDynamic().checked as Boolean
+                    props.updateTodo(props.todo.title, c)
                 }
+
+                ref { it?.checked = props.todo.completed }
             }
             label {
                 +props.todo.title
             }
             button(classes = "destroy") {
-                attrs {
-                    onClickFunction = {
-                        props.removeTodo()
-                    }
+                attrs.onClickFunction = {
+                    props.removeTodo()
                 }
             }
         }
@@ -64,9 +57,7 @@ class TodoItem : RComponent<TodoItem.Props, TodoItem.State>() {
             }
 
             if (props.editing) {
-                ref { it ->
-                    it?.focus()
-                }
+                ref { it?.focus() }
             }
         }
     }

@@ -1,24 +1,24 @@
 package app
 
-import components.info
 import components.headerInput
+import components.info
 import components.todoBar
+import components.todoList
 import kotlinx.html.InputType
 import kotlinx.html.id
-import react.*
-import react.dom.*
-import model.Todo
-import components.todoList
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.title
+import model.Todo
+import model.TodoFilter
+import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.get
 import org.w3c.dom.set
+import react.*
+import react.dom.input
+import react.dom.label
+import react.dom.section
 import utils.translate
 import kotlin.browser.localStorage
-
-enum class TodoFilter {
-    ANY, COMPLETED, PENDING
-}
 
 object AppOptions {
     var language = "no-language"
@@ -32,18 +32,6 @@ class App : RComponent<RProps, App.State>() {
         setState {
             todos = loadTodos()
             filter = TodoFilter.ANY
-        }
-    }
-
-    private fun loadTodos(): List<Todo> {
-        val storedTodosJSON = localStorage[AppOptions.localStorageKey]
-
-        return if (storedTodosJSON != null) {
-            JSON.parse<Array<Todo>>(storedTodosJSON).map {
-                Todo(it.id, it.title, it.completed)
-            }.toList()
-        } else {
-            emptyList()
         }
     }
 
@@ -64,7 +52,7 @@ class App : RComponent<RProps, App.State>() {
                             checked = allChecked
 
                             onChangeFunction = {event ->
-                                val isChecked = event.currentTarget.asDynamic().checked as Boolean
+                                val isChecked = (event.currentTarget as HTMLInputElement).checked
 
                                 setAllStatus(isChecked)
                             }
@@ -76,12 +64,11 @@ class App : RComponent<RProps, App.State>() {
                         attrs.title = "Mark all as complete".translate()
                     }
 
-
-
                     todoList(::removeTodo, ::updateTodo, state.todos, state.filter)
                 }
+
                 todoBar(pendingCount = countPending(),
-                        anyCompleted = containsAnyComplete(),
+                        anyCompleted = state.todos.any { todo -> todo.completed },
                         clearCompleted = ::clearCompleted,
                         currentFilter = state.filter,
                         updateFilter = ::updateFilter)
@@ -92,7 +79,17 @@ class App : RComponent<RProps, App.State>() {
     }
 
 
+    private fun loadTodos(): List<Todo> {
+        val storedTodosJSON = localStorage[AppOptions.localStorageKey]
 
+        return if (storedTodosJSON != null) {
+            JSON.parse<Array<Todo>>(storedTodosJSON).map {
+                Todo(it.id, it.title, it.completed)
+            }.toList()
+        } else {
+            emptyList()
+        }
+    }
 
     private fun updateFilter(newFilter: TodoFilter) {
         setState {
@@ -112,6 +109,25 @@ class App : RComponent<RProps, App.State>() {
         saveTodos(state.todos + todo)
     }
 
+    private fun updateTodo(todo: Todo) {
+        console.log("updateTodo [${todo.id}] ${todo.title}")
+
+        val newTodos = state.todos.map { oldTodo ->
+            if (todo.id == oldTodo.id) {
+                todo
+            } else {
+                oldTodo
+            }
+        }
+        saveTodos(newTodos)
+    }
+
+    private fun setAllStatus(newStatus: Boolean) {
+        setState {
+            todos = todos.map { todo -> todo.copy(completed = newStatus) }
+        }
+    }
+
     private fun saveTodos(updatedTodos: List<Todo>) {
         console.log("saving: ${updatedTodos.toTypedArray()}")
 
@@ -121,20 +137,6 @@ class App : RComponent<RProps, App.State>() {
             todos = updatedTodos
         }
     }
-
-    private fun updateTodo(todo: Todo) {
-        console.log("updateTodo [${todo.id}] ${todo.title}")
-
-        saveTodos(state.todos.map { oldTodo ->
-            if (todo.id == oldTodo.id) {
-                todo
-            } else {
-                oldTodo
-            }
-        })
-    }
-
-
 
     private fun storeTodos(todos: List<Todo>) {
         localStorage[AppOptions.localStorageKey] = JSON.stringify(todos.toTypedArray())
@@ -151,16 +153,9 @@ class App : RComponent<RProps, App.State>() {
     }
 
     private fun isAnyCompleted(): Boolean {
-        return containsAnyComplete()
+        return state.todos.any { todo -> todo.completed }
     }
 
-    private fun containsAnyComplete() = state.todos.any { todo -> todo.completed }
-
-    private fun setAllStatus(newStatus: Boolean) {
-        setState {
-            todos = todos.map { todo -> todo.copy(completed = newStatus)  }
-        }
-    }
 
     private fun pendingTodos() : List<Todo> {
         return state.todos.filter { todo -> !todo.completed }

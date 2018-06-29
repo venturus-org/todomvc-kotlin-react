@@ -12,7 +12,7 @@ import utils.Keys
 import utils.translate
 import utils.value
 
-class HeaderInput(props: Props): RComponent<HeaderInput.Props, HeaderInput.State>() {
+class HeaderInput : RComponent<HeaderInput.Props, HeaderInput.State>() {
 
     override fun componentWillMount() {
         setState {
