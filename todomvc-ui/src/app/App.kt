@@ -123,9 +123,7 @@ class App : RComponent<RProps, App.State>() {
     }
 
     private fun setAllStatus(newStatus: Boolean) {
-        setState {
-            todos = todos.map { todo -> todo.copy(completed = newStatus) }
-        }
+        saveTodos(state.todos.map { todo -> todo.copy(completed = newStatus) })
     }
 
     private fun saveTodos(updatedTodos: List<Todo>) {
