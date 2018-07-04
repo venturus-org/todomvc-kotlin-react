@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/todomvc-ui.iml" filepath="$PROJECT_DIR$/todomvc-ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/todomvc-kotlin-react.iml" filepath="$PROJECT_DIR$/todomvc-kotlin-react.iml" />
     </modules>
   </component>
 </project>
