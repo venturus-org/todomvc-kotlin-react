@@ -10,6 +10,7 @@
     "todomvc-common": "^1.0.0"
   },
   "devDependencies": {
+    "gh-pages": "^1.2.0",
     "react-scripts-kotlin": "2.1.10"
   },
   "scripts": {
